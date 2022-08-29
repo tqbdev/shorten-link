@@ -23,15 +23,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - name: Run Eslint
-        run: |
-          cd hosting
-          yarn
-          yarn lint
       - name: Deploy hosting
         run: |
           cd hosting
-          yarn
-          yarn build
+          npm ci
+          npm run build
           export FIREBASE_TOKEN=${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINK_SHORTER_TQBDEV }}
-          yarn deploy
+          npm run deploy

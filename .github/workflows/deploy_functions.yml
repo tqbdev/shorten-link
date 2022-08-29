@@ -25,11 +25,11 @@ jobs:
       - name: Run Eslint
         run: |
           cd functions
-          yarn
-          yarn lint
+          npm ci
+          npm run lint
       - name: Deploy functions
         run: |
           cd functions
-          yarn
+          npm ci
           export FIREBASE_TOKEN=${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINK_SHORTER_TQBDEV }}
-          yarn deploy
+          npm run deploy
