@@ -1,0 +1,35 @@
+name: Deploy Functions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - '.github/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - '.github/**'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - name: Run Eslint
+        run: |
+          cd functions
+          yarn
+          yarn lint
+      - name: Deploy functions
+        run: |
+          cd functions
+          yarn
+          export FIREBASE_TOKEN=${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINK_SHORTER_TQBDEV }}
+          yarn deploy

@@ -1,0 +1,131 @@
+---
+import Loader from './Loader.astro';
+import Success from './Success.astro';
+
+interface Data {
+  longUrl?: string;
+  shortUrl?: string;
+  isLoading: boolean;
+}
+
+function submitForm(data: Data) {
+  data.shortUrl = '';
+
+  if (data.longUrl) {
+    data.isLoading = true;
+
+    fetch('/api/short-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        url: data.longUrl,
+      }),
+    })
+      .then(async (result) => {
+        const resultJson = await result.json();
+        data.shortUrl = resultJson.shortLink;
+        data.isLoading = false;
+      })
+      .catch(() => {
+        data.isLoading = false;
+      });
+  }
+}
+---
+
+<div
+  class='input-container'
+  x-data=`{ data: { longUrl: '', shortUrl: '', isLoading: false }, submitForm: ${submitForm}}`
+>
+  <input
+    type='text'
+    placeholder='Paste long url here'
+    x-model='data.longUrl'
+    @keyup.enter='submitForm(data)'
+  />
+  <div class='btn-container'>
+    <button class='btn' x-on:click='submitForm(data)'>
+      <svg width='180px' height='60px' viewBox='0 0 180 60' class='border'>
+        <polyline points='179,1 179,59 1,59 1,1 179,1' class='bg-line'
+        ></polyline>
+        <polyline points='179,1 179,59 1,59 1,1 179,1' class='hl-line'
+        ></polyline>
+      </svg>
+      <span>GO</span>
+    </button>
+  </div>
+  <div x-show='data.isLoading'>
+    <Loader />
+  </div>
+  <div x-show='!data.isLoading && data.shortUrl'>
+    <Success />
+  </div>
+  <div x-show='!data.isLoading && data.shortUrl' x-text='data.shortUrl'></div>
+</div>
+
+<style lang='scss'>
+  .input-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem 2rem;
+    align-items: center;
+
+    input {
+      width: 80vw;
+      border-radius: 2px;
+      background: #f2f2f2;
+      border: 1px solid #f2f2f2;
+      color: #757575;
+      cursor: default;
+      font-size: 1.3rem;
+      font-weight: bold;
+      padding: 16px;
+      height: 36px;
+    }
+
+    .btn-container {
+      margin: 10px 0;
+      position: relative;
+
+      .btn {
+        width: 180px;
+        height: 60px;
+        cursor: pointer;
+        background: transparent;
+        border: 1px solid #91c9ff;
+        outline: none;
+        transition: 1s ease-in-out;
+
+        svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          fill: none;
+          stroke: #fff;
+          stroke-dasharray: 150 480;
+          stroke-dashoffset: 150;
+          transition: 1s ease-in-out;
+        }
+
+        &:hover {
+          transition: 1s ease-in-out;
+          background: #4f95da;
+
+          svg {
+            stroke-dashoffset: -480;
+          }
+        }
+
+        span {
+          color: white;
+          font-size: 18px;
+          font-weight: 100;
+        }
+      }
+    }
+  }
+</style>

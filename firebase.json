@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ],
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run lint"],
+    "source": "functions"
+  },
+  "hosting": {
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "public": "hosting/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "appAssociation": "AUTO",
+    "rewrites": [
+      { "source": "/api/short-url", "function": "shortUrl" },
+      { "source": "/api/analytics", "function": "analytics" },
+      { "source": "/r/**", "dynamicLinks": true },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
