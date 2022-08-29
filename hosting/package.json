@@ -15,7 +15,7 @@
     "@types/alpinejs": "^3.7.0",
     "alpinejs": "^3.10.3",
     "astro": "^1.1.1",
-    "sass": "^1.54.5",
-    "firebase-tools": "^11.8.0"
+    "firebase-tools": "^11.8.0",
+    "sass": "^1.54.5"
   }
 }
