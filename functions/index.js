@@ -1,3 +1,4 @@
+const axios = require('axios');
 const functions = require('firebase-functions');
 
 const admin = require('firebase-admin');
@@ -20,24 +21,19 @@ exports.shortUrl = functions.https.onRequest(async (req, res) => {
 
   try {
     logger.info(`Getting shorten URL for: ${link}`);
-    let result = await fetch(firebaseDynamicLinkApi, {
-      method: 'POST',
-      body: JSON.stringify({
-        dynamicLinkInfo: {
-          domainUriPrefix,
-          link,
-        },
-        suffix: {
-          option: 'SHORT',
-        },
-      }),
+    const result = await axios.post(firebaseDynamicLinkApi, {
+      dynamicLinkInfo: {
+        domainUriPrefix,
+        link,
+      },
+      suffix: {
+        option: 'SHORT',
+      },
     });
-
-    result = await result.json();
 
     // Store the result to Firestore
     try {
-      const data = Object.assign(result, {
+      const data = Object.assign(result.data, {
         clientInformation: req.headers,
         originalUrl: link,
         created: new Date(),
@@ -65,10 +61,9 @@ exports.analytics = functions.https.onRequest(async (req, res) => {
   const requestUrl = `https://firebasedynamiclinks.googleapis.com/v1/${shortDynamicLink}/linkStats?durationDays=${durationDays}&key=${apiKey}`;
 
   try {
-    logger.info(`Getting statistics for: ${shortDynamicLink}`);
-    let result = await fetch(requestUrl);
-    result = await result.text();
-    res.json(result);
+    logger.log(`Getting statistics for: ${shortDynamicLink}`);
+    const result = await axios.get(requestUrl);
+    res.json(result.data);
   } catch (e) {
     logger.error(e.message);
     res.status(500).json('error');
