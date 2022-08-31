@@ -1,49 +1,69 @@
 ---
 import Loader from './Loader.astro';
-import Success from './Success.astro';
+import Icon, { IconType, IconSize } from './Icon.astro';
 
 interface Data {
-  longUrl?: string;
-  shortUrl?: string;
+  longLink?: string;
+  shortLink?: string;
   isLoading: boolean;
+  isCopied: boolean;
+  error?: string;
 }
 
 function submitForm(data: Data) {
-  data.shortUrl = '';
+  data.shortLink = '';
+  data.error = '';
 
-  if (data.longUrl) {
+  if (data.longLink) {
     data.isLoading = true;
 
-    fetch('/api/short-url', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        url: data.longUrl,
-      }),
-    })
-      .then(async (result) => {
-        const resultJson = await result.json();
-        data.shortUrl = resultJson.shortLink;
-        data.isLoading = false;
+    const regex =
+      /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi;
+
+    if (data.longLink.match(regex)) {
+      fetch('/api/short-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          url: data.longLink,
+        }),
       })
-      .catch(() => {
-        data.isLoading = false;
-      });
+        .then(async (result) => {
+          const resultJson = await result.json();
+          data.shortLink = resultJson.shortLink;
+          data.isLoading = false;
+        })
+        .catch((error) => {
+          data.isLoading = false;
+          data.error =
+            'An unexpected error occurred. Please check your data input!';
+        });
+    } else {
+      data.isLoading = false;
+      data.error = 'Your link is invalid format! Must starts with http/https!';
+    }
+  }
+}
+
+function copyShortLink(data: Data) {
+  if (data.shortLink) {
+    navigator.clipboard.writeText(data.shortLink);
+    data.isCopied = true;
   }
 }
 ---
 
 <div
   class='input-container'
-  x-data=`{ data: { longUrl: '', shortUrl: '', isLoading: false }, submitForm: ${submitForm}}`
+  x-data=`{ data: { longLink: '', shortLink: '', isLoading: false, isCopied: false, error: '' }, submitForm: ${submitForm}, copyShortLink: ${copyShortLink}}`
 >
   <input
     type='text'
     placeholder='Paste long url here'
-    x-model='data.longUrl'
+    x-model='data.longLink'
     @keyup.enter='submitForm(data)'
   />
   <div class='btn-container'>
@@ -60,10 +80,45 @@ function submitForm(data: Data) {
   <div x-show='data.isLoading'>
     <Loader />
   </div>
-  <div x-show='!data.isLoading && data.shortUrl'>
-    <Success />
+  <div x-show='!data.isLoading && data.shortLink && !data.error'>
+    <Icon type={IconType.Success} />
   </div>
-  <div x-show='!data.isLoading && data.shortUrl' x-text='data.shortUrl'></div>
+  <div x-show='!data.isLoading && !data.shortLink && data.error'>
+    <Icon type={IconType.Warn} />
+  </div>
+  <div
+    class='result-container'
+    x-show='!data.isLoading && data.shortLink && !data.error'
+  >
+    <div>
+      <a
+        id='shortLink'
+        x-text='data.shortLink'
+        x-bind:href='data.shortLink'
+        target='_blank'></a>
+    </div>
+    <div class='btn-container'>
+      <button class='btn' x-on:click='copyShortLink(data)'>
+        <svg width='180px' height='60px' viewBox='0 0 180 60' class='border'>
+          <polyline points='179,1 179,59 1,59 1,1 179,1' class='bg-line'
+          ></polyline>
+          <polyline points='179,1 179,59 1,59 1,1 179,1' class='hl-line'
+          ></polyline>
+        </svg>
+        <span x-show='!data.isCopied'>COPY</span>
+        <div class='text' x-show='data.isCopied'>
+          <span>Copied!</span>
+          <Icon type={IconType.Success} size={IconSize.Small} />
+        </div>
+      </button>
+    </div>
+  </div>
+  <div
+    class='error-container'
+    x-show='!data.isLoading && !data.shortLink && data.error'
+  >
+    <span x-text='data.error'></span>
+  </div>
 </div>
 
 <style lang='scss'>
@@ -85,6 +140,7 @@ function submitForm(data: Data) {
       font-weight: bold;
       padding: 16px;
       height: 36px;
+      font-family: 'Fira Code', sans-serif;
     }
 
     .btn-container {
@@ -124,6 +180,29 @@ function submitForm(data: Data) {
           color: white;
           font-size: 18px;
           font-weight: 100;
+          font-family: 'Fira Code', sans-serif;
+        }
+      }
+    }
+
+    .result-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .btn-container {
+        margin-left: 20px;
+
+        .text {
+          font-size: var(--font-size-xm);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 40%;
+
+          span {
+            margin-left: 20px;
+          }
         }
       }
     }
