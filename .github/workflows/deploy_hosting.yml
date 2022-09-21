@@ -17,6 +17,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 
@@ -26,7 +27,6 @@ jobs:
       - name: Deploy hosting
         run: |
           cd hosting
-          npm ci
+          npm install
           npm run build
-          export FIREBASE_TOKEN=${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINK_SHORTER_TQBDEV }}
           npm run deploy

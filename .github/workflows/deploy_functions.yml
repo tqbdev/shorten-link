@@ -16,6 +16,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 
@@ -25,11 +26,10 @@ jobs:
       - name: Run Eslint
         run: |
           cd functions
-          npm ci
+          npm install
           npm run lint
       - name: Deploy functions
         run: |
           cd functions
-          npm ci
-          export FIREBASE_TOKEN=${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINK_SHORTER_TQBDEV }}
+          npm install
           npm run deploy
