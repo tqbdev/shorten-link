@@ -17,7 +17,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 
@@ -30,3 +29,5 @@ jobs:
           npm install
           npm run build
           npm run deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
